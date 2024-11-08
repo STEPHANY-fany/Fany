@@ -1,0 +1,56 @@
+import osmnx as ox
+import matplotlib.pyplot as plt
+from geopy.geocoders import Nominatim
+
+geolocator = Nominatim(user_agent="mi_dis")
+
+Mapa = "Xalapa, Veracruz"
+
+calles = ox.graph_from_place(Mapa, network_type="all")
+
+direccion_inicio = input("Introduce la dirección del punto de inicio: ")
+direccion = geolocator.geocode(direccion_inicio)
+
+if direccion:
+    latitud_inicio = direccion.latitude
+    longitud_inicio = direccion.longitude
+else:
+    print("No se pudo encontrar la dirección de inicio.")
+    exit()
+
+nodo_inicio = ox.distance.nearest_nodes(calles, X=longitud_inicio, Y=latitud_inicio)
+
+direccion_destino = input("Introduce la dirección del punto de destino: ")
+direccion2 = geolocator.geocode(direccion_destino)
+
+if direccion2:
+    latitud_destino = direccion2.latitude
+    longitud_destino = direccion2.longitude
+else:
+    print("No se pudo encontrar la dirección de destino.")
+    exit()
+
+nodo_destino = ox.distance.nearest_nodes(calles, X=longitud_destino, Y=latitud_destino)
+
+camino = ox.shortest_path(calles, nodo_inicio, nodo_destino, weight='length')
+
+distancia_camino = sum(ox.utils_graph.get_route_edge_attributes(calles, camino, 'length')) / 1000
+
+velocidad_caminando = 5
+velocidda_carro = 80
+tiempo_caminando = (distancia_camino / velocidad_caminando) * 60  
+tiempo_carro = (distancia_camino / velocidda_carro) * 60  
+
+print("Kilometros:", distancia_camino, "km")
+print("Tiempo aproximado caminando:", tiempo_caminando, "minutos")
+print("Tiempo aproximado en carro:", tiempo_carro, "minutos")
+
+fig, ax = ox.plot_graph_route(
+    calles, camino, route_linewidth=6, route_color="white",
+    node_size=0, node_color="blue", edge_color="green", show=False, close=False
+)
+
+ax.set_facecolor("black")
+
+
+plt.show()
